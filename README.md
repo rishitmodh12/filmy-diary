@@ -18,7 +18,7 @@ TMDb (The Movie Database) is the standard free movie data API portfolio projects
 4. Accept the terms of use
 5. Fill in the application form:
    - **Application name:** Filmy Diary
-   - **Application URL:** you don't need a live site yet — use your GitHub profile URL or `https://github.com/yourusername`
+   - **Application URL:** you don't need a live site yet — use your GitHub profile URL or `https://github.com/rishitmodh12`
    - **Application summary:** one sentence is fine, e.g. "A student project for tracking and recommending world cinema"
 6. Submit. You'll get two credentials — save both somewhere safe (not committed to GitHub):
    - **API Key (v3 auth)** — a short string, used as a query parameter
