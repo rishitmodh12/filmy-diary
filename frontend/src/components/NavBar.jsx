@@ -1,6 +1,7 @@
 import React from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../api/AuthContext";
+import Avatar from "./Avatar";
 
 const TABS = [
   { to: "/", label: "Library", end: true },
@@ -10,7 +11,7 @@ const TABS = [
 ];
 
 export default function NavBar() {
-  const { isLoggedIn, logout } = useAuth();
+  const { isLoggedIn, logout, user } = useAuth();
   const navigate = useNavigate();
 
   return (
@@ -23,15 +24,21 @@ export default function NavBar() {
           </div>
 
           {isLoggedIn ? (
-            <button
-              onClick={() => {
-                logout();
-                navigate("/login");
-              }}
-              className="text-sm text-ink-soft hover:text-ink"
-            >
-              Log out
-            </button>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <Avatar seed={user?.avatarSeed} size={28} />
+                <span className="text-sm text-ink-soft hidden sm:inline">{user?.username}</span>
+              </div>
+              <button
+                onClick={() => {
+                  logout();
+                  navigate("/login");
+                }}
+                className="text-sm text-ink-soft hover:text-ink"
+              >
+                Log out
+              </button>
+            </div>
           ) : (
             <NavLink to="/login" className="text-sm text-archive-700 font-medium hover:underline">
               Log in

@@ -1,11 +1,13 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../api/AuthContext";
+import AvatarPicker from "../components/AvatarPicker";
 
 export default function Login() {
   const [mode, setMode] = useState("login"); // "login" | "signup"
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [avatarSeed, setAvatarSeed] = useState("river-stone");
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -22,7 +24,7 @@ export default function Login() {
       if (mode === "login") {
         await login(username, password);
       } else {
-        await signup(username, password);
+        await signup(username, password, avatarSeed);
       }
       navigate(redirectTo, { replace: true });
     } catch (err) {
@@ -33,7 +35,7 @@ export default function Login() {
   }
 
   return (
-    <div className="max-w-sm mx-auto px-4 sm:px-6 py-16">
+    <div className={`mx-auto px-4 sm:px-6 py-16 transition-all ${mode === "signup" ? "max-w-md" : "max-w-sm"}`}>
       <h1 className="font-serif text-2xl font-medium mb-1">
         {mode === "login" ? "Welcome back" : "Start your diary"}
       </h1>
@@ -77,6 +79,8 @@ export default function Login() {
             <p className="text-xs text-ink-faint mt-1.5">At least 6 characters.</p>
           )}
         </div>
+
+        {mode === "signup" && <AvatarPicker value={avatarSeed} onChange={setAvatarSeed} />}
 
         {error && (
           <p className="text-sm text-coral-700 bg-coral-50 rounded-lg px-3 py-2">{error}</p>

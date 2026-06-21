@@ -8,10 +8,22 @@ export function AuthProvider({ children }) {
   const [checked, setChecked] = useState(false);
 
   React.useEffect(() => {
-    // We don't store the user object, only the token — on reload, we just
-    // know "logged in" until the first auth'd request fails (401), which
-    // ProtectedRoute below handles. Keeps this intentionally simple.
-    setChecked(true);
+    // On reload, we only have the token, not the user object — fetch it
+    // once so the avatar and username show up immediately instead of
+    // staying blank until the next login.
+    if (api.isLoggedIn()) {
+      api
+        .getMe()
+        .then(setUser)
+        .catch(() => {
+          // Token is invalid/expired — clear it so the UI doesn't think
+          // we're logged in when the backend disagrees.
+          api.logout();
+        })
+        .finally(() => setChecked(true));
+    } else {
+      setChecked(true);
+    }
   }, []);
 
   const doLogin = useCallback(async (username, password) => {
@@ -20,8 +32,8 @@ export function AuthProvider({ children }) {
     return loggedInUser;
   }, []);
 
-  const doSignup = useCallback(async (username, password) => {
-    const newUser = await api.signup(username, password);
+  const doSignup = useCallback(async (username, password, avatarSeed) => {
+    const newUser = await api.signup(username, password, avatarSeed);
     setUser(newUser);
     return newUser;
   }, []);

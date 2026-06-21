@@ -41,8 +41,11 @@ async function request(path, { method = "GET", body, auth = false } = {}) {
 }
 
 // --- Auth ---
-export async function signup(username, password) {
-  const data = await request("/auth/signup", { method: "POST", body: { username, password } });
+export async function signup(username, password, avatarSeed) {
+  const data = await request("/auth/signup", {
+    method: "POST",
+    body: { username, password, avatarSeed },
+  });
   setToken(data.token);
   return data.user;
 }
@@ -59,6 +62,10 @@ export function logout() {
 
 export function isLoggedIn() {
   return Boolean(getToken());
+}
+
+export function getMe() {
+  return request("/auth/me", { auth: true });
 }
 
 // --- Films ---
