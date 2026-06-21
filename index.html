@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FilmyDiary</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --gold: #f5c842;
+      --rose: #e05c8a;
+      --deep: #0d0d1a;
+      --card: rgba(255,255,255,0.06);
+      --glass: rgba(255,255,255,0.12);
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--deep);
+      color: #fff;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── ANIMATED BACKGROUND ── */
+    .bg {
+      position: fixed; inset: 0; z-index: 0;
+      background:
+        radial-gradient(ellipse at 20% 30%, rgba(229,70,120,0.25) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 70%, rgba(95,60,200,0.3) 0%, transparent 60%),
+        radial-gradient(ellipse at 50% 50%, rgba(245,200,66,0.08) 0%, transparent 70%),
+        linear-gradient(135deg, #0d0d1a 0%, #1a0a2e 50%, #0d1a2e 100%);
+      animation: bgShift 12s ease-in-out infinite alternate;
+    }
+    @keyframes bgShift {
+      0%   { filter: hue-rotate(0deg) brightness(1); }
+      100% { filter: hue-rotate(20deg) brightness(1.1); }
+    }
+
+    /* Film-strip particles */
+    .particles { position: fixed; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
+    .particle {
+      position: absolute;
+      width: 2px; height: 2px;
+      border-radius: 50%;
+      background: var(--gold);
+      opacity: 0;
+      animation: float linear infinite;
+    }
+    @keyframes float {
+      0%   { transform: translateY(110vh) scale(0); opacity: 0; }
+      10%  { opacity: 0.8; }
+      90%  { opacity: 0.6; }
+      100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+    }
+
+    /* ── LANDING PAGE ── */
+    #landing {
+      position: relative; z-index: 10;
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center; padding: 2rem;
+    }
+
+    .logo-wrap {
+      position: relative;
+      width: 160px; height: 160px;
+      margin-bottom: 1.5rem;
+    }
+    .logo-ring {
+      position: absolute; inset: -8px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      background: linear-gradient(135deg, var(--gold), var(--rose)) border-box;
+      -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: destination-out;
+      mask-composite: exclude;
+      animation: spinRing 6s linear infinite;
+    }
+    @keyframes spinRing { to { transform: rotate(360deg); } }
+    .logo-img {
+      width: 160px; height: 160px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid rgba(245,200,66,0.4);
+      box-shadow: 0 0 40px rgba(245,200,66,0.3), 0 0 80px rgba(229,70,120,0.2);
+    }
+
+    h1.brand {
+      font-family: 'Cinzel Decorative', cursive;
+      font-size: clamp(2.2rem, 6vw, 4rem);
+      background: linear-gradient(90deg, var(--gold), var(--rose), var(--gold));
+      background-size: 200%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: shimmer 3s linear infinite;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.4rem;
+    }
+    @keyframes shimmer { to { background-position: 200%; } }
+
+    .tagline {
+      font-size: 1rem;
+      color: rgba(255,255,255,0.55);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      margin-bottom: 2.5rem;
+    }
+
+    .btn-enter {
+      padding: 0.85rem 2.8rem;
+      border: none; border-radius: 50px;
+      background: linear-gradient(135deg, var(--gold), var(--rose));
+      color: #0d0d1a;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 600; font-size: 1rem;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      box-shadow: 0 0 30px rgba(245,200,66,0.4);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .btn-enter:hover {
+      transform: scale(1.07);
+      box-shadow: 0 0 50px rgba(245,200,66,0.6);
+    }
+
+    /* ── QUIZ PAGE ── */
+    #quiz {
+      display: none;
+      position: relative; z-index: 10;
+      min-height: 100vh;
+      padding: 3rem 1.5rem;
+    }
+
+    .quiz-inner {
+      max-width: 680px;
+      margin: 0 auto;
+    }
+
+    .progress-bar-wrap {
+      background: rgba(255,255,255,0.1);
+      border-radius: 50px;
+      height: 6px;
+      margin-bottom: 2.5rem;
+      overflow: hidden;
+    }
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--gold), var(--rose));
+      border-radius: 50px;
+      transition: width 0.4s ease;
+      width: 0%;
+    }
+
+    .question-card {
+      background: var(--glass);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 24px;
+      padding: 2.5rem 2rem;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+      animation: slideUp 0.4s ease;
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .q-step {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      color: var(--gold);
+      margin-bottom: 0.6rem;
+    }
+    .q-title {
+      font-size: clamp(1.3rem, 3vw, 1.7rem);
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+      line-height: 1.3;
+    }
+    .q-sub { font-size: 0.85rem; color: rgba(255,255,255,0.45); margin-bottom: 1.8rem; }
+
+    /* Text input */
+    .q-input {
+      width: 100%;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 12px;
+      padding: 0.85rem 1.1rem;
+      color: #fff;
+      font-size: 1rem;
+      font-family: 'Poppins', sans-serif;
+      outline: none;
+      transition: border 0.2s;
+    }
+    .q-input:focus { border-color: var(--gold); }
+    .q-input::placeholder { color: rgba(255,255,255,0.3); }
+
+    /* Option chips */
+    .chips { display: flex; flex-wrap: wrap; gap: 0.7rem; }
+    .chip {
+      padding: 0.55rem 1.3rem;
+      border-radius: 50px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.06);
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+      user-select: none;
+    }
+    .chip:hover  { border-color: var(--gold); background: rgba(245,200,66,0.12); }
+    .chip.active { border-color: var(--gold); background: rgba(245,200,66,0.22); color: var(--gold); font-weight: 600; }
+
+    /* Emoji mood grid */
+    .mood-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; }
+    .mood-btn {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      padding: 1rem 0.5rem;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.05);
+      cursor: pointer; font-size: 0.85rem; gap: 0.4rem;
+      transition: all 0.2s;
+    }
+    .mood-btn span.em { font-size: 1.8rem; }
+    .mood-btn:hover  { border-color: var(--rose); background: rgba(224,92,138,0.12); }
+    .mood-btn.active { border-color: var(--rose); background: rgba(224,92,138,0.22); color: var(--rose); }
+
+    /* Rating stars */
+    .stars { display: flex; gap: 0.5rem; font-size: 1.6rem; }
+    .star { cursor: pointer; color: rgba(255,255,255,0.2); transition: color 0.15s; }
+    .star.active { color: var(--gold); }
+
+    .q-nav {
+      display: flex; justify-content: flex-end;
+      margin-top: 2rem; gap: 0.8rem;
+    }
+    .btn-back, .btn-next {
+      padding: 0.7rem 1.8rem;
+      border-radius: 50px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.9rem; font-weight: 600;
+      cursor: pointer; border: none;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .btn-back {
+      background: rgba(255,255,255,0.08);
+      color: rgba(255,255,255,0.6);
+    }
+    .btn-back:hover { background: rgba(255,255,255,0.14); }
+    .btn-next {
+      background: linear-gradient(135deg, var(--gold), var(--rose));
+      color: #0d0d1a;
+      box-shadow: 0 0 20px rgba(245,200,66,0.35);
+    }
+    .btn-next:hover { transform: scale(1.05); box-shadow: 0 0 35px rgba(245,200,66,0.5); }
+
+    /* ── RESULT PAGE ── */
+    #result {
+      display: none;
+      position: relative; z-index: 10;
+      min-height: 100vh;
+      padding: 3rem 1.5rem;
+      text-align: center;
+    }
+    .result-inner { max-width: 700px; margin: 0 auto; }
+    .result-title {
+      font-family: 'Cinzel Decorative', cursive;
+      font-size: clamp(1.4rem, 4vw, 2.2rem);
+      background: linear-gradient(90deg, var(--gold), var(--rose));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 0.5rem;
+    }
+    .result-sub { color: rgba(255,255,255,0.5); margin-bottom: 2rem; font-size: 0.9rem; }
+    .movie-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1rem; text-align: left; }
+    .movie-card {
+      background: var(--glass);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      padding: 1.2rem;
+      backdrop-filter: blur(12px);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .movie-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,0.4); }
+    .mc-emoji { font-size: 2rem; margin-bottom: 0.4rem; }
+    .mc-title { font-weight: 600; margin-bottom: 0.2rem; }
+    .mc-meta { font-size: 0.75rem; color: rgba(255,255,255,0.45); }
+    .mc-badge {
+      display: inline-block;
+      margin-top: 0.5rem;
+      padding: 0.2rem 0.65rem;
+      border-radius: 50px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      background: linear-gradient(135deg, var(--gold), var(--rose));
+      color: #0d0d1a;
+    }
+
+    .btn-restart {
+      margin-top: 2.5rem;
+      padding: 0.85rem 2.5rem;
+      border: none; border-radius: 50px;
+      background: linear-gradient(135deg, var(--rose), var(--gold));
+      color: #0d0d1a;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 600; font-size: 1rem;
+      cursor: pointer;
+      box-shadow: 0 0 25px rgba(224,92,138,0.4);
+      transition: transform 0.2s;
+    }
+    .btn-restart:hover { transform: scale(1.06); }
+
+    /* Floating film strip decoration */
+    .filmstrip {
+      position: fixed; top: 0; right: -30px;
+      width: 60px; height: 100vh;
+      z-index: 5; opacity: 0.06;
+      background:
+        repeating-linear-gradient(
+          to bottom,
+          #fff 0px, #fff 10px,
+          transparent 10px, transparent 20px
+        );
+    }
+  </style>
+</head>
+<body>
+
+<!-- background layers -->
+<div class="bg"></div>
+<div class="particles" id="particles"></div>
+<div class="filmstrip"></div>
+
+<!-- ╔══════════════╗ -->
+<!-- ║  LANDING     ║ -->
+<!-- ╚══════════════╝ -->
+<section id="landing">
+  <div class="logo-wrap">
+    <div class="logo-ring"></div>
+    <!-- Replace src with your FilmyDiary logo file path -->
+    <img class="logo-img" src="Film.png" alt="FilmyDiary Logo" onerror="this.style.display='none'" />
+  </div>
+
+  <h1 class="brand">FilmyDiary</h1>
+  <p class="tagline">Your personal movie universe</p>
+
+  <!-- Memory / portal background image preview -->
+  <div style="position:relative;width:min(460px,90vw);height:220px;border-radius:24px;overflow:hidden;margin-bottom:2rem;box-shadow:0 0 60px rgba(95,60,200,0.5)">
+    <img src="memory.jpg" alt="" style="width:100%;height:100%;object-fit:cover;filter:brightness(0.75) saturate(1.3)" onerror="this.parentElement.style.background='linear-gradient(135deg,#1a0a2e,#0d1a2e)'" />
+    <div style="position:absolute;inset:0;background:linear-gradient(to top,rgba(13,13,26,0.8),transparent 60%);display:flex;align-items:flex-end;padding:1.2rem 1.5rem">
+      <p style="font-size:0.9rem;color:rgba(255,255,255,0.8);line-height:1.4">Every film opens a new door. <strong style="color:var(--gold)">Which one calls you tonight?</strong></p>
+    </div>
+  </div>
+
+  <button class="btn-enter" onclick="startQuiz()">🎬 Enter FilmyDiary</button>
+</section>
+
+<!-- ╔══════════════╗ -->
+<!-- ║  QUIZ        ║ -->
+<!-- ╚══════════════╝ -->
+<section id="quiz">
+  <div class="quiz-inner">
+    <div class="progress-bar-wrap"><div class="progress-bar" id="progressBar"></div></div>
+    <div class="question-card" id="questionCard"></div>
+  </div>
+</section>
+
+<!-- ╔══════════════╗ -->
+<!-- ║  RESULT      ║ -->
+<!-- ╚══════════════╝ -->
+<section id="result">
+  <div class="result-inner">
+    <h2 class="result-title">🎞️ Your FilmyDiary Picks</h2>
+    <p class="result-sub" id="resultSub"></p>
+    <div class="movie-cards" id="movieCards"></div>
+    <button class="btn-restart" onclick="restart()">✨ Find More Films</button>
+  </div>
+</section>
+
+<script>
+// ── Particles ──
+const pc = document.getElementById('particles');
+for (let i = 0; i < 50; i++) {
+  const p = document.createElement('div');
+  p.className = 'particle';
+  p.style.cssText = `left:${Math.random()*100}%;width:${Math.random()*3+1}px;height:${Math.random()*3+1}px;animation-duration:${Math.random()*15+8}s;animation-delay:${Math.random()*10}s`;
+  pc.appendChild(p);
+}
+
+// ── Questions ──
+const questions = [
+  {
+    id:'name', type:'text',
+    title:'What should we call you? 🎭',
+    sub:'Your FilmyDiary name',
+    placeholder:'Enter your name…'
+  },
+  {
+    id:'mood', type:'mood',
+    title:'How are you feeling right now?',
+    sub:'Pick the vibe that matches you today',
+    options:[
+      {em:'😂',label:'Happy & Energetic'},
+      {em:'😢',label:'Sad & Emotional'},
+      {em:'😨',label:'Thrilled & Tense'},
+      {em:'🥰',label:'Romantic & Dreamy'},
+      {em:'🤔',label:'Curious & Thoughtful'},
+      {em:'😴',label:'Chill & Relaxed'}
+    ]
+  },
+  {
+    id:'genre', type:'chips',
+    title:'Favourite genre(s)?',
+    sub:'Pick as many as you like',
+    multi:true,
+    options:['Action','Comedy','Romance','Thriller','Horror','Drama','Sci-Fi','Animation','Mystery','Fantasy','Documentary','Bollywood']
+  },
+  {
+    id:'language', type:'chips',
+    title:'Preferred language?',
+    sub:'Select all that work for you',
+    multi:true,
+    options:['Hindi','English','Tamil','Telugu','Korean','Spanish','French','Japanese','Any']
+  },
+  {
+    id:'era', type:'chips',
+    title:'Which era do you love?',
+    sub:'',
+    multi:false,
+    options:['Classic (pre-90s)','90s Gold','2000s Nostalgia','Recent (2010s+)','Latest Releases','No Preference']
+  },
+  {
+    id:'length', type:'chips',
+    title:'How long do you want to watch?',
+    sub:'',
+    multi:false,
+    options:['Short (<90 min)','Standard (90–120 min)','Epic (2+ hours)','Mini-series / Show']
+  },
+  {
+    id:'minRating', type:'stars',
+    title:'Minimum rating you expect?',
+    sub:'1 = open to anything · 5 = only the best',
+  }
+];
+
+let step = 0;
+const answers = {};
+
+function startQuiz() {
+  document.getElementById('landing').style.display = 'none';
+  document.getElementById('quiz').style.display = 'block';
+  renderQ();
+}
+
+function renderQ() {
+  const q = questions[step];
+  document.getElementById('progressBar').style.width = ((step/questions.length)*100) + '%';
+  const card = document.getElementById('questionCard');
+  card.style.animation = 'none'; void card.offsetWidth; card.style.animation = '';
+
+  let inner = `<div class="q-step">Step ${step+1} of ${questions.length}</div>
+               <div class="q-title">${q.title}</div>
+               ${q.sub ? `<div class="q-sub">${q.sub}</div>` : ''}`;
+
+  if (q.type === 'text') {
+    inner += `<input class="q-input" id="qInput" type="text" placeholder="${q.placeholder}" value="${answers[q.id]||''}" />`;
+  } else if (q.type === 'mood') {
+    inner += `<div class="mood-grid">${q.options.map((o,i)=>`
+      <div class="mood-btn${answers[q.id]===o.label?' active':''}" onclick="selectMood(this,'${o.label}')">
+        <span class="em">${o.em}</span><span>${o.label}</span>
+      </div>`).join('')}</div>`;
+  } else if (q.type === 'chips') {
+    inner += `<div class="chips">${q.options.map(o=>`
+      <div class="chip${(answers[q.id]||[]).includes(o)?' active':''}" onclick="selectChip(this,'${q.id}',${q.multi},'${o}')">${o}</div>`).join('')}</div>`;
+  } else if (q.type === 'stars') {
+    const cur = answers[q.id]||0;
+    inner += `<div class="stars">${[1,2,3,4,5].map(n=>`<span class="star${n<=cur?' active':''}" onclick="selectStar(${n})" data-n="${n}">★</span>`).join('')}</div>`;
+  }
+
+  inner += `<div class="q-nav">
+    ${step>0?'<button class="btn-back" onclick="prevQ()">← Back</button>':''}
+    <button class="btn-next" onclick="nextQ()">${ step===questions.length-1 ? '🎬 Find My Films' : 'Next →'}</button>
+  </div>`;
+
+  card.innerHTML = inner;
+}
+
+function selectMood(el, val) {
+  document.querySelectorAll('.mood-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  answers[questions[step].id] = val;
+}
+function selectChip(el, id, multi, val) {
+  if (!multi) {
+    document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+    answers[id] = [val];
+  } else {
+    const arr = answers[id] || [];
+    const idx = arr.indexOf(val);
+    if (idx>-1) arr.splice(idx,1); else arr.push(val);
+    answers[id] = arr;
+  }
+  el.classList.toggle('active', (answers[id]||[]).includes(val));
+}
+function selectStar(n) {
+  answers[questions[step].id] = n;
+  document.querySelectorAll('.star').forEach(s=>{
+    s.classList.toggle('active', +s.dataset.n <= n);
+  });
+}
+
+function nextQ() {
+  const q = questions[step];
+  if (q.type==='text') {
+    const v = document.getElementById('qInput').value.trim();
+    if (!v) return shake();
+    answers[q.id] = v;
+  }
+  if (step < questions.length-1) { step++; renderQ(); }
+  else showResult();
+}
+function prevQ() { if (step>0) { step--; renderQ(); } }
+
+function shake() {
+  const c = document.getElementById('questionCard');
+  c.style.animation = 'none';
+  c.style.transform = 'translateX(-8px)';
+  setTimeout(()=>c.style.transform='translateX(8px)',100);
+  setTimeout(()=>c.style.transform='', 200);
+}
+
+// ── Simple movie suggestion engine (local) ──
+const MOVIES = [
+  {title:'3 Idiots',genre:['Comedy','Drama'],lang:'Hindi',year:2009,rating:8.4,em:'🎓'},
+  {title:'Inception',genre:['Sci-Fi','Thriller'],lang:'English',year:2010,rating:8.8,em:'🌀'},
+  {title:'Dil Chahta Hai',genre:['Comedy','Drama','Romance'],lang:'Hindi',year:2001,rating:8.1,em:'☀️'},
+  {title:'Parasite',genre:['Thriller','Drama'],lang:'Korean',year:2019,rating:8.6,em:'🏠'},
+  {title:'Queen',genre:['Drama'],lang:'Hindi',year:2014,rating:8.1,em:'👑'},
+  {title:'The Dark Knight',genre:['Action','Thriller'],lang:'English',year:2008,rating:9.0,em:'🦇'},
+  {title:'Zindagi Na Milegi Dobara',genre:['Drama','Romance','Comedy'],lang:'Hindi',year:2011,rating:8.1,em:'🌊'},
+  {title:'Your Name',genre:['Romance','Animation','Fantasy'],lang:'Japanese',year:2016,rating:8.4,em:'🌠'},
+  {title:'Andhadhun',genre:['Thriller','Mystery'],lang:'Hindi',year:2018,rating:8.2,em:'🎹'},
+  {title:'Amélie',genre:['Romance','Comedy'],lang:'French',year:2001,rating:8.3,em:'🌻'},
+  {title:'Taare Zameen Par',genre:['Drama'],lang:'Hindi',year:2007,rating:8.4,em:'⭐'},
+  {title:'Get Out',genre:['Horror','Thriller'],lang:'English',year:2017,rating:7.7,em:'😱'},
+  {title:'Interstellar',genre:['Sci-Fi','Drama'],lang:'English',year:2014,rating:8.7,em:'🚀'},
+  {title:'Mughal-E-Azam',genre:['Romance','Drama'],lang:'Hindi',year:1960,rating:8.2,em:'🕌'},
+  {title:'Dangal',genre:['Drama','Action'],lang:'Hindi',year:2016,rating:8.3,em:'🤼'},
+  {title:'Spirited Away',genre:['Animation','Fantasy'],lang:'Japanese',year:2001,rating:8.6,em:'🌊'},
+  {title:'Dil Se',genre:['Romance','Drama','Thriller'],lang:'Hindi',year:1998,rating:7.6,em:'❤️'},
+  {title:'Train to Busan',genre:['Horror','Thriller','Action'],lang:'Korean',year:2016,rating:7.6,em:'🚄'},
+  {title:'Sholay',genre:['Action','Drama'],lang:'Hindi',year:1975,rating:8.2,em:'🔥'},
+  {title:'La La Land',genre:['Romance','Drama'],lang:'English',year:2016,rating:8.0,em:'🎵'},
+];
+
+function showResult() {
+  document.getElementById('quiz').style.display = 'none';
+  document.getElementById('result').style.display = 'block';
+
+  const genres  = answers.genre    || [];
+  const langs   = answers.language || [];
+  const minStar = answers.minRating || 1;
+  const era     = (answers.era||[''])[0];
+
+  let scored = MOVIES.map(m => {
+    let score = 0;
+    genres.forEach(g => { if(m.genre.includes(g)) score += 2; });
+    if (langs.includes(m.lang)||langs.includes('Any')) score += 1;
+    if (m.rating >= minStar*1.5 + 5.5) score += 1;
+    if (era.includes('Classic') && m.year<1990) score += 2;
+    if (era.includes('90s')     && m.year>=1990 && m.year<2000) score += 2;
+    if (era.includes('2000s')   && m.year>=2000 && m.year<2010) score += 2;
+    if (era.includes('2010')    && m.year>=2010 && m.year<2020) score += 2;
+    if (era.includes('Latest')  && m.year>=2020) score += 2;
+    return {...m, score};
+  }).sort((a,b)=>b.score-a.score||b.rating-a.rating).slice(0,6);
+
+  document.getElementById('resultSub').textContent =
+    `Hey ${answers.name||'Cinephile'}, based on your ${answers.mood||'vibe'} mood — here are your perfect picks!`;
+
+  document.getElementById('movieCards').innerHTML = scored.map(m=>`
+    <div class="movie-card">
+      <div class="mc-emoji">${m.em}</div>
+      <div class="mc-title">${m.title}</div>
+      <div class="mc-meta">${m.lang} · ${m.year} · ⭐ ${m.rating}</div>
+      <span class="mc-badge">${m.genre[0]}</span>
+    </div>`).join('');
+}
+
+function restart() {
+  Object.keys(answers).forEach(k=>delete answers[k]);
+  step = 0;
+  document.getElementById('result').style.display = 'none';
+  document.getElementById('landing').style.display = 'flex';
+}
+</script>
+</body>
+</html>
